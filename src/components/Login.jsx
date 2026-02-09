@@ -157,7 +157,7 @@ export default function Login({ onLogin }) {
                                 >
                                     <div style={{ fontSize: '2rem' }}>👨‍🌾</div>
                                     <div>
-                                        <div style={{ fontWeight: 'bold', color: '#fff' }}>Threessha D (Farmer)</div>
+                                        <div style={{ fontWeight: 'bold', color: '#fff' }}>Demo Farmer</div>
                                         <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Vellore | 5 Acres</div>
                                     </div>
                                     <div style={{ marginLeft: 'auto', color: '#10B981' }}>→</div>

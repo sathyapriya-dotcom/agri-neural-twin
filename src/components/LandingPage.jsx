@@ -124,7 +124,7 @@ export default function LandingPage({ onGetStarted, onDemoLogin }) {
                                     <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '1rem' }}>
                                         <div style={{ fontSize: '2.5rem', background: '#064E3B', width: '60px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%' }}>👩‍🌾</div>
                                         <div>
-                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fff' }}>Threessha D</div>
+                                            <div style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#fff' }}>Demo Farmer</div>
                                             <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Age: 21 | Land: 5 Acres</div>
                                         </div>
                                     </div>
