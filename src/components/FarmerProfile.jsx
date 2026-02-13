@@ -3,7 +3,7 @@ import { AgriStackService } from '../services/AgriStack';
 import { useTranslation } from '../i18n';
 import '../styles/Dashboard.css';
 
-export default function FarmerProfile({ farmerId }) {
+export default function FarmerProfile({ farmerId, onLogout }) {
     const { t } = useTranslation();
     const [profile, setProfile] = useState(null);
     const [intent, setIntent] = useState({ crop: 'Tomato', area: 2.5 });
@@ -30,9 +30,28 @@ export default function FarmerProfile({ farmerId }) {
 
     return (
         <div style={{ padding: '2rem', color: '#fff', maxWidth: '800px', margin: '0 auto' }}>
-            <h2 className="cyber-font" style={{ color: '#10B981', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
-                {t('farmer_profile')} // {profile.name}
-            </h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #334155', paddingBottom: '1rem' }}>
+                <h2 className="cyber-font" style={{ color: '#10B981', margin: 0 }}>
+                    {t('farmer_profile')} // {profile.name}
+                </h2>
+                <button
+                    onClick={onLogout}
+                    style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid #EF4444',
+                        color: '#EF4444',
+                        padding: '0.5rem 1rem',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontFamily: 'Share Tech Mono',
+                        fontSize: '0.8rem'
+                    }}
+                    className="hover-bright"
+                >
+                    [ LOGOUT SESSION ]
+                </button>
+            </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', marginTop: '2rem' }}>
                 {/* Basic Info */}

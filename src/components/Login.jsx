@@ -4,24 +4,81 @@ import { useTranslation } from '../i18n';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 
+import LanguageSwitcher from './LanguageSwitcher';
+
 export default function Login({ onLogin }) {
     const { t } = useTranslation();
     const [userType, setUserType] = useState('farmer');
-    const [credentials, setCredentials] = useState({ id: '', mobile: '', password: '' });
+    const [credentials, setCredentials] = useState({ id: '', mobile: '', password: '', aadhaar: '', otp: '' });
     const [demoMode, setDemoMode] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Auth States
+    const [authMethod, setAuthMethod] = useState('standard'); // 'standard', 'aadhaar'
+    const [aadhaarVerified, setAadhaarVerified] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
+    const [timer, setTimer] = useState(0);
 
     const DEMO_FARMER = { id: 'TN-VEL-001', mobile: '9876543210', password: 'password123' };
     const DEMO_OFFICER = { id: 'EDII-TN-ADMIN', mobile: '9988776655', password: 'adminpass' };
 
     useEffect(() => {
-        if (!demoMode) setCredentials({ id: '', mobile: '', password: '' });
+        let interval;
+        if (timer > 0) {
+            interval = setInterval(() => setTimer(t => t - 1), 1000);
+        }
+        return () => clearInterval(interval);
+    }, [timer]);
+
+    useEffect(() => {
+        if (!demoMode) setCredentials({ id: '', mobile: '', password: '', aadhaar: '', otp: '' });
     }, [demoMode]);
 
     const handleInput = (e) => {
-        setCredentials({ ...credentials, [e.target.name]: e.target.value });
+        let value = e.target.value;
+        if (e.target.name === 'aadhaar') {
+            // Auto-format Aadhaar (XXXX XXXX XXXX)
+            value = value.replace(/\D/g, '').substring(0, 12);
+            if (value.length > 4) value = value.substring(0, 4) + ' ' + value.substring(4);
+            if (value.length > 9) value = value.substring(0, 9) + ' ' + value.substring(9);
+        }
+        setCredentials({ ...credentials, [e.target.name]: value });
         setError('');
+    };
+
+    const sendOtp = () => {
+        const rawAadhaar = credentials.aadhaar.replace(/\s/g, '');
+        if (rawAadhaar.length !== 12) {
+            setError("Enter valid 12-digit Aadhaar Number");
+            return;
+        }
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setOtpSent(true);
+            setTimer(60);
+            toast.success("OTP sent to registered mobile linked with Aadhaar", { icon: '📲' });
+        }, 1500);
+    };
+
+    const verifyAadhaarLogin = () => {
+        if (credentials.otp !== '123456' && credentials.aadhaar.slice(-4) !== '2026') {
+            // Mock Check: If last 4 digits are 2026, we allow any OTP for demo ease, else require specific OTP
+            if (credentials.otp.length !== 6) {
+                setError("Invalid OTP");
+                return;
+            }
+        }
+
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setAadhaarVerified(true);
+            toast.success("Aadhaar Verified Successfully", { icon: '✅' });
+            // Pre-fill dummy data for profile setup transition
+            setTimeout(() => onLogin('farmer', false, { verified: true, name: 'Thiru. Selvam', aadhaar: credentials.aadhaar }), 1000);
+        }, 1500);
     };
 
     const validate = () => {
@@ -48,7 +105,7 @@ export default function Login({ onLogin }) {
 
     const handleDemoSelect = (role) => {
         const creds = role === 'farmer' ? DEMO_FARMER : DEMO_OFFICER;
-        setCredentials(creds);
+        setCredentials({ ...credentials, ...creds });
         setUserType(role);
 
         toast.loading(`Initializing Demo Environment: ${role.toUpperCase()}...`, { duration: 1000 });
@@ -65,7 +122,7 @@ export default function Login({ onLogin }) {
             <div style={{ flex: 1, padding: '4rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', position: 'relative' }}>
                 <div className="auth-overlay" style={{ opacity: 0.3 }}></div>
 
-                <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }} style={{ zIndex: 2 }}>
+                <div style={{ zIndex: 2 }}>
                     <h1 className="cyber-font" style={{ fontSize: '3.5rem', color: '#10B981', marginBottom: '0.5rem', textShadow: '0 0 20px rgba(16, 185, 129, 0.4)' }}>Agri-Neural Twin</h1>
                     <h2 style={{ fontSize: '1.5rem', color: '#cbd5e1', marginBottom: '3rem', fontFamily: 'Share Tech Mono', letterSpacing: '1px' }}>THE GOOGLE MAPS FOR FARMERS</h2>
 
@@ -92,16 +149,24 @@ export default function Login({ onLogin }) {
                             </div>
                         </div>
                     </div>
-                </motion.div>
+                </div>
+
+                {/* Official Links Footer */}
+                <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.1)', display: 'flex', gap: '2rem', fontSize: '0.8rem', color: '#64748B' }}>
+                    <a href="https://tnhorticulture.tn.gov.in" target="_blank" rel="noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>tnhorticulture.tn.gov.in</a>
+                    <a href="https://tnagrisnet.tn.gov.in" target="_blank" rel="noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>tnagrisnet.tn.gov.in</a>
+                    <a href="https://uzhavan.tn.gov.in" target="_blank" rel="noreferrer" style={{ color: '#94a3b8', textDecoration: 'none' }}>uzhavan.tn.gov.in</a>
+                </div>
             </div>
 
             {/* RIGHT: Login Form Container */}
             <div style={{ flex: '0 0 45%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(10px)', borderLeft: '1px solid rgba(255,255,255,0.05)', position: 'relative', zIndex: 10 }}>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2 }}
+                <div style={{ position: 'absolute', top: '2rem', right: '2rem', zIndex: 20 }}>
+                    <LanguageSwitcher />
+                </div>
+
+                <div
                     className="glass-card"
                     style={{ width: '100%', maxWidth: '450px', padding: '2.5rem', margin: '2rem' }}
                 >
@@ -113,31 +178,111 @@ export default function Login({ onLogin }) {
                     {/* Standard Form */}
                     {!demoMode && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                            <div className="user-type-toggle" style={{ marginBottom: '1.5rem' }}>
-                                <button className={`toggle-btn ${userType === 'farmer' ? 'active' : ''}`} onClick={() => setUserType('farmer')}>👨‍🌾 Farmer</button>
-                                <button className={`toggle-btn officer ${userType === 'officer' ? 'active' : ''}`} onClick={() => setUserType('officer')}>👔 Officer</button>
+
+                            {/* Auth Method Tabs */}
+                            <div style={{ display: 'flex', marginBottom: '1.5rem', background: '#0f172a', padding: '4px', borderRadius: '8px' }}>
+                                <button
+                                    onClick={() => setAuthMethod('standard')}
+                                    style={{ flex: 1, padding: '8px', border: 'none', background: authMethod === 'standard' ? '#334155' : 'transparent', color: authMethod === 'standard' ? 'white' : '#64748B', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
+                                >
+                                    Standard ID
+                                </button>
+                                <button
+                                    onClick={() => setAuthMethod('aadhaar')}
+                                    style={{ flex: 1, padding: '8px', border: 'none', background: authMethod === 'aadhaar' ? '#334155' : 'transparent', color: authMethod === 'aadhaar' ? 'white' : '#64748B', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
+                                >
+                                    Login with Aadhaar
+                                </button>
                             </div>
 
-                            <form onSubmit={handleSubmit}>
-                                <div className="input-group">
-                                    <label className="input-label">{userType === 'farmer' ? 'FARMER ID' : 'OFFICER ID'}</label>
-                                    <input name="id" className="auth-input" value={credentials.id} onChange={handleInput} placeholder={userType === 'farmer' ? 'TN-FARM-XXXX' : 'TN-OFF-XXXX'} />
-                                </div>
-                                <div className="input-group">
-                                    <label className="input-label">MOBILE</label>
-                                    <input name="mobile" className="auth-input" value={credentials.mobile} onChange={handleInput} maxLength={10} />
-                                </div>
-                                <div className="input-group">
-                                    <label className="input-label">PASSWORD</label>
-                                    <input type="password" name="password" className="auth-input" value={credentials.password} onChange={handleInput} />
-                                </div>
+                            {authMethod === 'standard' ? (
+                                <form onSubmit={handleSubmit}>
+                                    <div className="user-type-toggle" style={{ marginBottom: '1.5rem' }}>
+                                        <button type="button" className={`toggle-btn ${userType === 'farmer' ? 'active' : ''}`} onClick={() => setUserType('farmer')}>👨‍🌾 Farmer</button>
+                                        <button type="button" className={`toggle-btn officer ${userType === 'officer' ? 'active' : ''}`} onClick={() => setUserType('officer')}>👔 Officer</button>
+                                    </div>
+                                    <div className="input-group">
+                                        <label className="input-label">{userType === 'farmer' ? 'FARMER ID' : 'OFFICER ID'}</label>
+                                        <input name="id" className="auth-input" value={credentials.id} onChange={handleInput} placeholder={userType === 'farmer' ? 'TN-FARM-XXXX' : 'TN-OFF-XXXX'} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label className="input-label">MOBILE</label>
+                                        <input name="mobile" className="auth-input" value={credentials.mobile} onChange={handleInput} maxLength={10} />
+                                    </div>
+                                    <div className="input-group">
+                                        <label className="input-label">PASSWORD</label>
+                                        <input type="password" name="password" className="auth-input" value={credentials.password} onChange={handleInput} />
+                                    </div>
 
-                                {error && <div className="error-msg">⚠️ {error}</div>}
+                                    {error && <div className="error-msg">⚠️ {error}</div>}
 
-                                <button type="submit" disabled={loading} className="cyber-btn" style={{ width: '100%', padding: '1rem', background: userType === 'farmer' ? '#10B981' : '#3B82F6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem' }}>
-                                    {loading ? 'VERIFYING...' : 'SECURE LOGIN'}
-                                </button>
-                            </form>
+                                    <button type="submit" disabled={loading} className="cyber-btn" style={{ width: '100%', padding: '1rem', background: userType === 'farmer' ? '#10B981' : '#3B82F6', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem' }}>
+                                        {loading ? 'VERIFYING...' : 'SECURE LOGIN'}
+                                    </button>
+                                </form>
+                            ) : (
+                                <div>
+                                    <div className="input-group">
+                                        <label className="input-label">AADHAAR NUMBER</label>
+                                        <input
+                                            name="aadhaar"
+                                            className="auth-input"
+                                            value={credentials.aadhaar}
+                                            onChange={handleInput}
+                                            placeholder="XXXX XXXX XXXX"
+                                            maxLength={14}
+                                        />
+                                    </div>
+
+                                    {otpSent && (
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }}>
+                                            <div className="input-group">
+                                                <label className="input-label">ENTER OTP</label>
+                                                <input
+                                                    name="otp"
+                                                    className="auth-input"
+                                                    value={credentials.otp}
+                                                    onChange={handleInput}
+                                                    placeholder="• • • • • •"
+                                                    maxLength={6}
+                                                    style={{ letterSpacing: '8px', textAlign: 'center', fontSize: '1.2rem' }}
+                                                />
+                                            </div>
+                                            <div style={{ textAlign: 'right', fontSize: '0.8rem', color: timer > 0 ? '#10B981' : '#EF4444', marginBottom: '1rem' }}>
+                                                {timer > 0 ? `Resend in ${timer}s` : <span onClick={sendOtp} style={{ cursor: 'pointer', textDecoration: 'underline' }}>Resend OTP</span>}
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {error && <div className="error-msg">⚠️ {error}</div>}
+
+                                    {!otpSent ? (
+                                        <button onClick={sendOtp} disabled={loading} className="cyber-btn" style={{ width: '100%', padding: '1rem', background: '#334155', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem' }}>
+                                            {loading ? 'SENDING OTP...' : 'VERIFY VIA OTP'}
+                                        </button>
+                                    ) : (
+                                        <button onClick={verifyAadhaarLogin} disabled={loading} className="cyber-btn" style={{ width: '100%', padding: '1rem', background: '#10B981', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '1rem' }}>
+                                            {loading ? 'VERIFYING IDENTITY...' : 'CONFIRM & LOGIN'}
+                                        </button>
+                                    )}
+
+                                    <div style={{ textAlign: 'center', margin: '1.5rem 0', color: '#64748B', fontSize: '0.8rem' }}>— OR —</div>
+
+                                    <button
+                                        className="hover-bright"
+                                        style={{
+                                            width: '100%', padding: '0.8rem',
+                                            background: 'linear-gradient(90deg, #b91c1c 0%, #f59e0b 100%)',
+                                            color: '#fff', border: 'none', borderRadius: '8px',
+                                            fontWeight: 'bold', cursor: 'pointer',
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px'
+                                        }}
+                                    >
+                                        🏛️ LOGIN WITH TN e-SEVAI / AGRI-STACK
+                                    </button>
+                                </div>
+                            )}
+
                         </motion.div>
                     )}
 
@@ -206,7 +351,7 @@ export default function Login({ onLogin }) {
                         </div>
                     </div>
 
-                </motion.div>
+                </div>
             </div>
 
             <div style={{ position: 'absolute', bottom: '2rem', left: '4rem', color: '#475569', fontSize: '0.8rem' }}>

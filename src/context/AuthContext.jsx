@@ -29,10 +29,10 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    const login = (role, demo = false) => {
+    const login = (role, demo = false, prefillData = null) => {
         // Set state for the active session, but do NOT persist to allow refresh-reset
         const userRole = role || 'farmer';
-        setUser({ role: userRole });
+        setUser({ role: userRole, prefillData }); // Store prefillData in user object
         setIsAuthenticated(true);
         // We can set localStorage if other tabs need to know, but we won't read it on mount.
         // For now, let's keep it ephemeral.

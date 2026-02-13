@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { runSimulation } from '../services/simulation';
+import { calculateMarketRisk } from '../services/simulationEngine';
 import ProfitMeter from './ProfitMeter';
 import { useTranslation } from '../i18n';
 import '../styles/Dashboard.css';
@@ -16,9 +16,37 @@ export default function RiskAnalysis({ cropType, sowingArea, districtId }) {
     const handleRunSimulation = async () => {
         setSimulating(true);
         setResult(null);
+
+        // Simulation Delay
+        await new Promise(r => setTimeout(r, 1500));
+
         try {
-            const data = await runSimulation(cropType, sowingArea, districtId);
-            setResult(data);
+            // Mock Data for Context
+            const cropPrices = {
+                'paddy': 25, 'groundnut': 60, 'sugarcane': 0.3, 'cotton': 55,
+                'maize': 22, 'tomato': 15, 'turmeric': 90
+            };
+            const labels = {
+                'paddy': 'Paddy', 'groundnut': 'Groundnut', 'sugarcane': 'Sugarcane',
+                'cotton': 'Cotton', 'maize': 'Maize', 'tomato': 'Tomato', 'turmeric': 'Turmeric'
+            };
+
+            const density = sowingArea ? (parseFloat(sowingArea) / 50) : 1.0;
+            const simResult = calculateMarketRisk({
+                sowingDensity: density,
+                historicalAvgPrice: cropPrices[cropType] || 20,
+                weatherFactor: 0.9, // Mock weather
+                cropName: labels[cropType] || cropType
+            });
+
+            // Map Engine Result to Component State
+            setResult({
+                alertType: simResult.riskLevel === 'High' ? 'critical' : (simResult.riskLevel === 'Medium' ? 'warning' : 'success'),
+                message: simResult.recommendation,
+                riskScore: Math.min(density * 50 * 2, 100).toFixed(0), // Simple saturation mapping
+                raw: simResult
+            });
+
         } catch (e) {
             console.error(e);
         } finally {
@@ -97,20 +125,19 @@ export default function RiskAnalysis({ cropType, sowingArea, districtId }) {
                 <div style={{ display: 'grid', gap: '1.5rem', animation: 'fadeIn 0.5s', zIndex: 2 }}>
 
                     {/* Critical Recommendation Pivot */}
-                    {result.recommendation && (
+                    {result.alertType !== 'success' && (
                         <div style={{
-                            background: 'rgba(239, 68, 68, 0.1)',
-                            border: '1px solid var(--color-alert-red)',
+                            background: result.alertType === 'critical' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)',
+                            border: `1px solid ${result.alertType === 'critical' ? 'var(--color-alert-red)' : '#F59E0B'}`,
                             padding: '1rem',
                             borderRadius: '8px',
                             display: 'flex', flexDirection: 'column', gap: '0.5rem'
                         }}>
-                            <div style={{ fontWeight: 'bold', color: 'var(--color-alert-red)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                <span>🛑 {t('alert_warning')}:</span>
-                                <span>{result.message}</span>
+                            <div style={{ fontWeight: 'bold', color: result.alertType === 'critical' ? 'var(--color-alert-red)' : '#F59E0B', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                <span>{result.alertType === 'critical' ? '🛑' : '⚠️'} {t('alert_warning')}:</span>
                             </div>
                             <div style={{ fontSize: '0.9rem', color: '#E2E8F0' }}>
-                                AI Suggestion: <span style={{ fontWeight: 'bold', color: 'var(--color-primary-emerald)' }}>Switch to {result.recommendation.suggestedCrop.toUpperCase()}</span>
+                                {result.message}
                             </div>
                         </div>
                     )}

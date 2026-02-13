@@ -1,25 +1,31 @@
-import React from 'react';
-import { calculateRisk } from '../services/simulation';
+import { calculateMarketRisk } from '../services/simulationEngine';
 import { useTranslation } from '../i18n';
 
 export default function SimulationControl({ selectedBlock, cropType, setCropType, sowingArea, setSowingArea, onSimulate }) {
     const { t } = useTranslation();
 
     const crops = [
-        { value: 'paddy', label: 'Paddy (IR-20)' },
-        { value: 'groundnut', label: 'Groundnut (TMV-7)' },
-        { value: 'sugarcane', label: 'Sugarcane' },
-        { value: 'cotton', label: 'Cotton' },
-        { value: 'maize', label: 'Maize' },
-        { value: 'tomato', label: 'Tomato (Hybrid)' },
-        { value: 'turmeric', label: 'Turmeric (High Curcumin)' }
+        { value: 'paddy', label: 'Paddy (IR-20)', price: 25 },
+        { value: 'groundnut', label: 'Groundnut (TMV-7)', price: 60 },
+        { value: 'sugarcane', label: 'Sugarcane', price: 300 }, // Tonne price scaled down or kg? Using kg for simplicity: 0.3
+        { value: 'cotton', label: 'Cotton', price: 55 },
+        { value: 'maize', label: 'Maize', price: 22 },
+        { value: 'tomato', label: 'Tomato (Hybrid)', price: 15 },
+        { value: 'turmeric', label: 'Turmeric (High Curcumin)', price: 90 }
     ];
 
     // Real-time Risk Assessment
-    const risk = calculateRisk(cropType, sowingArea);
+    const selectedCropData = crops.find(c => c.value === cropType) || crops[0];
+    const density = sowingArea ? (parseFloat(sowingArea) / 50) : 1.0; // Assume 50 acres is baseline
+    const risk = calculateMarketRisk({
+        sowingDensity: density,
+        historicalAvgPrice: selectedCropData.price,
+        weatherFactor: 0.95, // Default slight variance
+        cropName: selectedCropData.label
+    });
 
     return (
-        <div className="card" style={{ borderColor: risk.alertType === 'critical' ? 'var(--color-alert-red)' : 'var(--color-primary-emerald)' }}>
+        <div className="card" style={{ borderColor: risk.riskLevel === 'High' ? 'var(--color-alert-red)' : 'var(--color-primary-emerald)' }}>
             <div className="card-title cyber-font">{t('simulation_controls')}</div>
             <h3 style={{ margin: '0.5rem 0', color: 'var(--color-primary-emerald)', fontSize: '1rem' }}>
                 {selectedBlock
@@ -65,7 +71,7 @@ export default function SimulationControl({ selectedBlock, cropType, setCropType
                 </div>
 
                 {/* Instant Risk Feedback */}
-                {risk.alertType === 'critical' && (
+                {risk.riskLevel === 'High' && (
                     <div style={{
                         padding: '0.75rem',
                         background: 'rgba(239, 68, 68, 0.15)',
@@ -76,7 +82,7 @@ export default function SimulationControl({ selectedBlock, cropType, setCropType
                         display: 'flex', alignItems: 'center', gap: '0.5rem',
                         animation: 'pulse 2s infinite'
                     }}>
-                        ⚠️ {t('alert_critical')}: {risk.message}
+                        ⚠️ {t('alert_critical')}: {risk.recommendation}
                     </div>
                 )}
             </div>

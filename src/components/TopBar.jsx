@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { useTranslation } from '../i18n';
-import LanguageSelector from './LanguageSelector';
+import LanguageSwitcher from './LanguageSwitcher';
 import { StateBrain } from '../services/StateBrain';
 
 export default function TopBar({ selectedDistrict, onDistrictChange, districts, loading, viewMode, setViewMode, onLogout }) {
@@ -143,7 +143,7 @@ export default function TopBar({ selectedDistrict, onDistrictChange, districts, 
                 </div>
 
                 {/* Language Selector */}
-                <LanguageSelector />
+                <LanguageSwitcher />
 
                 {/* 2. CRITICAL ALERT (Connected to Simulation) */}
                 {criticalAlert && (

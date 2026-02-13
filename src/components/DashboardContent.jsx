@@ -1,40 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import GeospatialAnalysis from './GeospatialAnalysis';
-import SimulationControl from './SimulationControl';
-import RiskAnalysis from './RiskAnalysis';
+import WhatIfSimulator from './WhatIfSimulator';
 import { dataService } from '../services/dataService';
 import { useTranslation } from '../i18n';
 import '../styles/Dashboard.css';
 
+import { motion } from 'framer-motion';
+
 export default function DashboardContent({ districtId }) {
     const [selectedBlock, setSelectedBlock] = useState(null);
-    const [cropType, setCropType] = useState('paddy');
-    const [sowingArea, setSowingArea] = useState('');
-
     const [metricsData, setMetricsData] = useState(null);
     const [loadingMetrics, setLoadingMetrics] = useState(true);
-    const { t } = useTranslation();
+    const [weatherData, setWeatherData] = useState(null);
+    const { t, language } = useTranslation();
 
     // Fetch Metrics when District Changes
     useEffect(() => {
         setLoadingMetrics(true);
         setSelectedBlock(null);
 
-        dataService.getDistrictMetrics(districtId)
-            .then(data => {
-                setMetricsData(data);
-                setLoadingMetrics(false);
-            })
-            .catch(err => {
-                console.error(err);
-                setLoadingMetrics(false);
-            });
-    }, [districtId]);
+        if (!districtId) {
+            console.warn("No District ID provided to DashboardContent");
+            setLoadingMetrics(false);
+            return;
+        }
 
-    const handleSimulate = () => {
-        if (!selectedBlock) return alert(t('select_district_first') || "Select Block First");
-        // Action handled in RiskAnalysis
-    };
+        console.log("Fetching metrics for:", districtId);
+
+        Promise.all([
+            dataService.getDistrictMetrics(districtId),
+            dataService.getRealTimeWeather(districtId)
+        ]).then(([metrics, weather]) => {
+            console.log("Data fetched:", metrics, weather);
+            if (metrics) {
+                setMetricsData(metrics);
+                setWeatherData(weather);
+            } else {
+                console.error("Metrics data is null");
+            }
+            setLoadingMetrics(false);
+        }).catch(err => {
+            console.error("Dashboard Fetch Error:", err);
+            setLoadingMetrics(false);
+        });
+    }, [districtId]);
 
     if (loadingMetrics) {
         return (
@@ -46,7 +55,21 @@ export default function DashboardContent({ districtId }) {
         );
     }
 
-    if (!metricsData) return null;
+    if (!metricsData) {
+        return (
+            <main className="main-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column' }}>
+                <div style={{ color: '#EF4444', fontSize: '1.2rem', marginBottom: '1rem' }}>⚠️ UNABLE TO ESTABLISH NEURAL LINK</div>
+                <div style={{ color: '#94a3b8' }}>District Data Unavailable for ID: {districtId}</div>
+                <button
+                    onClick={() => window.location.reload()}
+                    className="cyber-btn"
+                    style={{ marginTop: '1rem', background: '#334155' }}
+                >
+                    RETRY CONNECTION
+                </button>
+            </main>
+        );
+    }
 
     const metrics = [
         { title: t('soil_nitrogen'), value: metricsData.nitrogen, unit: "mg/kg", trend: "Recalibrating...", status: "optimal" },
@@ -58,10 +81,16 @@ export default function DashboardContent({ districtId }) {
     ];
 
     return (
-        <main className="main-content">
+        <motion.main
+            key={language}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+            className="main-content"
+        >
             <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 className="cyber-font" style={{ margin: 0, color: 'var(--color-primary-emerald)', fontSize: '1.5rem', textTransform: 'uppercase' }}>
-                    {metricsData.name.toUpperCase()} {t('sector_command')}
+                    {t(metricsData.name.toLowerCase())} {t('sector_command')}
                 </h2>
                 <span className="cyber-font" style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                     {t('node')}: {districtId.toUpperCase()} | {t('status_online')}
@@ -93,16 +122,13 @@ export default function DashboardContent({ districtId }) {
 
                 {/* Right: Simulation Controls */}
                 <div className="control-panel" id="what-if-analysis">
-                    <SimulationControl
-                        selectedBlock={selectedBlock}
-                        cropType={cropType} setCropType={setCropType}
-                        sowingArea={sowingArea} setSowingArea={setSowingArea}
-                        onSimulate={handleSimulate}
+                    <WhatIfSimulator
+                        districtName={metricsData.name}
+                        initialWeather={weatherData}
+                        onSimulate={(data) => console.log("Simulation Update:", data)}
                     />
-
-                    <RiskAnalysis cropType={cropType} sowingArea={sowingArea} districtId={districtId} />
                 </div>
             </div>
-        </main>
+        </motion.main>
     );
 }

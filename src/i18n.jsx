@@ -40,7 +40,15 @@ const resources = {
         crop_type: "Crop Type",
         sowing_area: "Sowing Area (Acres)",
 
+        // Districts
+        vellore: "Vellore",
+        thanjavur: "Thanjavur",
+        madurai: "Madurai",
+
         // Risk Analysis & Profit Meter
+        risk_analysis: "Risk Analysis",
+        profit_meter: "Profit Meter",
+        sowing_density: "Sowing Density",
         ai_brain: "AI BRAIN: 1,000 SEASON SIMULATION",
         market_saturation: "Saturation Index",
         profitability: "Profitability Gauge",
@@ -87,6 +95,14 @@ const resources = {
         simulation_controls: "உருவகப்படுத்துதல் கட்டுப்பாடுகள்",
         crop_type: "பயிர் வகை",
         sowing_area: "விதைப்பு பகுதி (ஏக்கர்)",
+        // Districts
+        vellore: "வேலூர்",
+        thanjavur: "தஞ்சாவூர்",
+        madurai: "மதுரை",
+
+        risk_analysis: "சந்தை அபாய ஆய்வு",
+        profit_meter: "லாபத் துல்லியமானி",
+        sowing_density: "விதைப்பு அடர்த்தி",
         ai_brain: "AI மூளை: 1,000 பருவங்கள்",
         market_saturation: "சந்தை செறிவு",
         profitability: "லாப அளவு",
@@ -176,11 +192,20 @@ const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
     const [language, setLanguage] = useState(() => {
-        return localStorage.getItem('agri_lang') || 'en';
+        try {
+            return localStorage.getItem('agri_lang') || 'en';
+        } catch (e) {
+            console.warn("LocalStorage access denied, defaulting to English");
+            return 'en';
+        }
     });
 
     useEffect(() => {
-        localStorage.setItem('agri_lang', language);
+        try {
+            localStorage.setItem('agri_lang', language);
+        } catch (e) {
+            // Ignore write errors
+        }
         document.body.dir = language === 'ur' ? 'rtl' : 'ltr';
     }, [language]);
 

@@ -1,3 +1,4 @@
+console.log("App Module Loading...");
 import React, { useState, useEffect } from 'react';
 import { Toaster, toast } from 'react-hot-toast';
 import Sidebar from './components/Sidebar';
@@ -52,7 +53,7 @@ function MainLayout({ onLogout }) {
       case 'profile':
         return (
           <main className="main-content" style={{ padding: '0' }}>
-            <FarmerProfile farmerId="TN-FARM-10045" />
+            <FarmerProfile farmerId="TN-FARM-10045" onLogout={onLogout} />
           </main>
         );
       case 'settings':
@@ -69,7 +70,7 @@ function MainLayout({ onLogout }) {
 
   return (
     <div className="dashboard-layout">
-      <Sidebar districtId={districtId} onViewChange={setViewMode} viewMode={viewMode} />
+      <Sidebar districtId={districtId} onViewChange={setViewMode} viewMode={viewMode} onLogout={onLogout} />
 
       <TopBar
         selectedDistrict={districtId}
@@ -132,8 +133,8 @@ function AppContent() {
     );
   }
 
-  const handleLogin = (role, isDemo) => {
-    login(role, isDemo);
+  const handleLogin = (role, isDemo, prefillData = null) => {
+    login(role, isDemo, prefillData);
     toast.success(isDemo ? 'DEMO ENVIRONMENT EXTANT' : 'ACCESS GRANTED: WELCOME TO COMMAND CENTER', {
       style: { background: isDemo ? '#F59E0B' : '#10B981', color: '#fff', fontFamily: 'Share Tech Mono' },
       icon: isDemo ? '🧪' : '🔓'
@@ -158,7 +159,7 @@ function AppContent() {
 
   if (!isAuthenticated) return <Login onLogin={handleLogin} />;
 
-  if (!isProfileComplete) return <ProfileSetup userType={user?.role} onComplete={handleProfileComplete} />;
+  if (!isProfileComplete) return <ProfileSetup userType={user?.role} onComplete={handleProfileComplete} prefillData={user?.prefillData} />;
 
   return <MainLayout onLogout={handleLogout} />;
 }

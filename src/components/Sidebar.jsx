@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from '../i18n';
 
-export default function Sidebar({ districtId, viewMode, onViewChange }) {
+export default function Sidebar({ districtId, viewMode, onViewChange, onLogout }) {
   const { t } = useTranslation();
 
   const menuItems = [
@@ -36,7 +36,11 @@ export default function Sidebar({ districtId, viewMode, onViewChange }) {
         ))}
 
         {/* Logout */}
-        <div className="nav-item" style={{ marginTop: 'auto', borderTop: '1px solid var(--color-border)', color: '#EF4444' }}>
+        <div
+          className="nav-item"
+          style={{ marginTop: 'auto', borderTop: '1px solid var(--color-border)', color: '#EF4444', cursor: 'pointer' }}
+          onClick={onLogout}
+        >
           {t('logout')}
         </div>
       </nav>

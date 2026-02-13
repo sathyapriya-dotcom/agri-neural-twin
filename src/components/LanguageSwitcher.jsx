@@ -1,7 +1,7 @@
 import React from 'react';
 import { useTranslation } from '../i18n';
 
-export default function LanguageSelector() {
+export default function LanguageSwitcher() {
     const { language, setLanguage } = useTranslation();
 
     const options = [
