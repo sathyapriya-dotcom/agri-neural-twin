@@ -1,6 +1,6 @@
 # Agri-Neural Twin 🌱🤖
 
-**The District Intelligence & Agricultural Risk Engine for Tamil Nadu.**
+**The District Intelligence & Agricultural Risk Engine for Tamil Nadu.** 
 
 Agri-Neural Twin is a next-generation "Digital Twin" dashboard designed to empower farmers and policymakers with real-time agricultural intelligence. By combining historical data with neural network simulations, it predicts market gluts, optimizes crop selection, and mitigates climate risks.
 

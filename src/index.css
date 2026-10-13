@@ -1,35 +1,66 @@
 :root {
-  /* Colors - Agriculture-Tech Palette */
-  --color-primary-emerald: #10B981;
-  /* Emerald Green - Growth/Life */
-  --color-secondary-teal: #0D9488;
-  /* Deep Teal - Data/Depth */
-  --color-accent-brown: #8B5A2B;
-  /* Earthy Brown - Soil/Roots */
-  --color-alert-red: #EF4444;
-  /* High-contrast Red - Critical Alerts */
-  --color-bg-dark: #0F172A;
-  /* Deep Blue/Black - Background */
-  --color-bg-panel: #1E293B;
-  /* Panel Background */
-  --color-text-main: #F1F5F9;
-  /* Light Text */
-  --color-text-muted: #94A3B8;
-  /* Muted Text */
-  --color-border: #334155;
-  /* Border Color */
-
-  /* Spacing */
+  /* Spacing (Theme-independent) */
   --spacing-sm: 0.5rem;
   --spacing-md: 1rem;
   --spacing-lg: 1.5rem;
 }
 
+/* LIGHT THEME (Default) */
+body {
+  /* Colors - Agriculture-Tech Palette (Light Mode) */
+  --color-primary-emerald: #059669;
+  --color-secondary-teal: #0D9488;
+  --color-accent-brown: #92400E;
+  --color-alert-red: #DC2626;
+  --color-warning-yellow: #D97706;
+  --color-info-blue: #2563EB;
+
+  /* Backgrounds */
+  --color-bg-dark: #F9FAFB;
+  --color-bg-panel: #FFFFFF;
+  --color-bg-card: #FFFFFF;
+
+  /* Text */
+  --color-text-main: #1F2937;
+  --color-text-muted: #6B7280;
+
+  /* Borders */
+  --color-border: #E5E7EB;
+  --color-border-light: #D1D5DB;
+
+  /* Effects */
+  --shadow-md: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --shadow-glow-emerald: 0 0 10px rgba(5, 150, 105, 0.2);
+}
+
+/* DARK THEME (only when explicitly set) */
+body[data-theme="dark"] {
+  --color-primary-emerald: #10B981;
+  --color-secondary-teal: #0D9488;
+  --color-accent-brown: #8B5A2B;
+  --color-alert-red: #EF4444;
+  --color-warning-yellow: #F59E0B;
+  --color-info-blue: #3B82F6;
+
+  --color-bg-dark: #0F172A;
+  --color-bg-panel: #1E293B;
+  --color-bg-card: #1E293B;
+
+  --color-text-main: #F1F5F9;
+  --color-text-muted: #94A3B8;
+
+  --color-border: #334155;
+  --color-border-light: #475569;
+
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --shadow-glow-emerald: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background-color: var(--color-bg-dark);
-  color: var(--color-text-main);
+  background-color: #F9FAFB;
+  color: #1F2937;
   -webkit-font-smoothing: antialiased;
 }
 
